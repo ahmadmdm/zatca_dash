@@ -1,0 +1,36 @@
+[
+ {
+  "color": "#0050E6",
+  "docstatus": 0,
+  "doctype": "Number Card",
+  "dynamic_filters_json": "{}",
+  "filters_json": "[]",
+  "function": null,
+  "is_public": 1,
+  "is_standard": 1,
+  "label": "Today's Branch Sales",
+  "method": "zatca_dashboard.api.invoices.get_today_branch_sales",
+  "module": "Zatca Dashboard",
+  "name": "Today's Branch Sales",
+  "show_percentage_stats": 1,
+  "stats_time_interval": "Daily",
+  "type": "Custom"
+ },
+ {
+  "color": "#00B894",
+  "docstatus": 0,
+  "doctype": "Number Card",
+  "dynamic_filters_json": "{}",
+  "filters_json": "[]",
+  "function": null,
+  "is_public": 1,
+  "is_standard": 1,
+  "label": "Today's Branch Invoices",
+  "method": "zatca_dashboard.api.invoices.get_today_branch_invoice_count",
+  "module": "Zatca Dashboard",
+  "name": "Today's Branch Invoices",
+  "show_percentage_stats": 1,
+  "stats_time_interval": "Daily",
+  "type": "Custom"
+ }
+]

@@ -8,6 +8,13 @@ app_version = "1.0.0"
 
 required_apps = ["frappe"]
 
+fixtures = [
+	{
+		"dt": "Number Card",
+		"filters": [["name", "in", ["Today's Branch Sales", "Today's Branch Invoices"]]],
+	},
+]
+
 scheduler_events = {
     "hourly": [
         "zatca_dashboard.api.alerts.run_zatca_alerts",
