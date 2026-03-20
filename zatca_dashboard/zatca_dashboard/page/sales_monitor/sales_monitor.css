@@ -159,10 +159,10 @@
 	background: var(--fg-hover-color);
 }
 
-/* column alignment — explicit to work consistently in both LTR & RTL */
+/* column alignment — all right-aligned (natural RTL) so header and data are visually consistent */
 .sm-bst-branch { text-align: right; }
 .sm-bst-count  { text-align: center; }
-.sm-bst-num    { text-align: left; }
+.sm-bst-num    { text-align: right; }
 .sm-bst-center { text-align: center; }
 .sm-bst-muted  { color: var(--text-muted); }
 .sm-date-range-wrap {
