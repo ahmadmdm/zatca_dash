@@ -6,7 +6,7 @@
 frappe.pages["sales-monitor"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent:        wrapper,
-		title:         __("مراقبة المبيعات"),
+		title:         __("Sales Monitor"),
 		single_column: true,
 	});
 
@@ -47,16 +47,16 @@ class SalesMonitorPage {
 	_build_toolbar() {
 		const self = this;
 
-		this.page.add_inner_button(__("تحديث"), () => {
+		this.page.add_inner_button(__("Refresh"), () => {
 			self.refresh();
 		}, __("")).prepend(frappe.utils.icon("refresh", "xs") + " ");
 
 		// Period selector
 		const periods = [
-			{ key: "week",    label: __("أسبوع")  },
-			{ key: "month",   label: __("شهر")    },
-			{ key: "quarter", label: __("ربع سنة")},
-			{ key: "year",    label: __("سنة")    },
+			{ key: "week",    label: __("Week")    },
+			{ key: "month",   label: __("Month")   },
+			{ key: "quarter", label: __("Quarter") },
+			{ key: "year",    label: __("Year")    },
 		];
 		periods.forEach(p => {
 			this.page.add_inner_button(p.label, () => {
@@ -67,7 +67,7 @@ class SalesMonitorPage {
 					b.classList.toggle("btn-primary",  b.dataset.period === p.key);
 					b.classList.toggle("btn-default",  b.dataset.period !== p.key);
 				});
-			}, __("الفترة"));
+			}, __("Period"));
 		});
 	}
 
@@ -88,13 +88,13 @@ class SalesMonitorPage {
 		<div class="col-xs-12">
 			<div class="frappe-card sm-card" id="sm-branch-sales-card">
 				<div class="sm-card-head">
-					<div class="sm-section-title">${__("مبيعات الفروع")}</div>
+					<div class="sm-section-title">${__("Branch Sales")}</div>
 					<div class="sm-date-range-wrap">
-						<label class="text-muted small" style="margin:0 4px;">${__("من")}</label>
+						<label class="text-muted small" style="margin:0 4px;">${__("From")}</label>
 						<input type="date" id="sm-bs-from" class="form-control input-sm sm-date-input" />
-						<label class="text-muted small" style="margin:0 4px;">${__("إلى")}</label>
+						<label class="text-muted small" style="margin:0 4px;">${__("To")}</label>
 						<input type="date" id="sm-bs-to" class="form-control input-sm sm-date-input" />
-						<button class="btn btn-sm btn-primary" id="sm-bs-apply" style="white-space:nowrap;">${__("عرض")}</button>
+						<button class="btn btn-sm btn-primary" id="sm-bs-apply" style="white-space:nowrap;">${__("Apply")}</button>
 					</div>
 				</div>
 				<div id="sm-branch-sales-wrap" style="min-height:80px;">
@@ -110,14 +110,14 @@ class SalesMonitorPage {
 			<div class="frappe-card sm-card" id="sm-chart-card">
 				<div class="sm-card-head">
 					<div>
-						<div class="sm-section-title">${__("مقارنة المبيعات")}</div>
+						<div class="sm-section-title">${__("Sales Comparison")}</div>
 						<div id="sm-chart-summary" class="text-muted small" style="margin-top:2px"></div>
 					</div>
 					<div class="sm-period-tabs" id="sm-period-tabs">
-						<button class="btn btn-xs btn-primary sm-period-btn" data-period="week"   >${__("أسبوع")}</button>
-						<button class="btn btn-xs btn-default sm-period-btn" data-period="month"  >${__("شهر")}</button>
-						<button class="btn btn-xs btn-default sm-period-btn" data-period="quarter">${__("ربع سنة")}</button>
-						<button class="btn btn-xs btn-default sm-period-btn" data-period="year"   >${__("سنة")}</button>
+						<button class="btn btn-xs btn-primary sm-period-btn" data-period="week"   >${__("Week")}</button>
+						<button class="btn btn-xs btn-default sm-period-btn" data-period="month"  >${__("Month")}</button>
+						<button class="btn btn-xs btn-default sm-period-btn" data-period="quarter">${__("Quarter")}</button>
+						<button class="btn btn-xs btn-default sm-period-btn" data-period="year"   >${__("Year")}</button>
 					</div>
 				</div>
 				<div id="sm-chart-wrap" style="min-height:220px;display:flex;align-items:center;justify-content:center;">
@@ -128,7 +128,7 @@ class SalesMonitorPage {
 		<div class="col-sm-4 col-xs-12" style="margin-top:0;">
 			<div class="frappe-card sm-card" id="sm-branches-card">
 				<div class="sm-card-head">
-					<div class="sm-section-title">${__("حالة الفروع")}</div>
+					<div class="sm-section-title">${__("Branch Status")}</div>
 					<span id="sm-connected-badge" class="indicator-pill green" style="display:none"></span>
 				</div>
 				<div id="sm-branches-list" style="min-height:120px;">
@@ -143,11 +143,11 @@ class SalesMonitorPage {
 		<div class="col-xs-12">
 			<div class="frappe-card sm-card" id="sm-invoices-card">
 				<div class="sm-card-head">
-					<div class="sm-section-title">${__("آخر الفواتير")}</div>
+					<div class="sm-section-title">${__("Recent Invoices")}</div>
 					<div class="input-group input-group-sm" style="width:220px;">
 						<input type="text" id="sm-invoice-search"
 							class="form-control"
-							placeholder="${__("بحث برقم الفاتورة أو الفرع")}">
+							placeholder="${__("Search by invoice or branch")}">
 					</div>
 				</div>
 				<div id="sm-invoices-wrap">
@@ -159,7 +159,7 @@ class SalesMonitorPage {
 
 	<!-- Status bar -->
 	<div class="text-muted small" style="margin-top:12px;text-align:right;" id="sm-status-bar">
-		${__("جارٍ التحميل…")}
+		${__("Loading...")}
 	</div>
 </div>
 `;
@@ -178,8 +178,8 @@ class SalesMonitorPage {
 			applyBtn.addEventListener("click", () => {
 				const from = fromInput ? fromInput.value : self.branch_start;
 				const to   = toInput   ? toInput.value   : self.branch_end;
-				if (!from || !to) { frappe.msgprint(__("يرجى تحديد التاريخ من وإلى")); return; }
-				if (from > to)    { frappe.msgprint(__("تاريخ البداية يجب أن يكون قبل تاريخ النهاية")); return; }
+				if (!from || !to) { frappe.msgprint(__("Please set the From and To dates")); return; }
+				if (from > to)    { frappe.msgprint(__("Start date must be before end date")); return; }
 				self.branch_start = from;
 				self.branch_end   = to;
 				self._load_branch_sales(from, to);
@@ -257,13 +257,13 @@ class SalesMonitorPage {
 			if (!data) return;
 			this._render_branch_sales(wrap, data);
 		} catch(e) {
-			wrap.innerHTML = `<div class="text-muted" style="padding:20px;">${__("تعذّر تحميل مبيعات الفروع")}</div>`;
+			wrap.innerHTML = `<div class="text-muted" style="padding:20px;">${__("Failed to load branch sales")}</div>`;
 		}
 	}
 
 	_render_branch_sales(wrap, data) {
 		if (!data.data || !data.data.length) {
-			wrap.innerHTML = `<div class="text-muted" style="padding:20px;text-align:center;">${__("لا توجد مبيعات في هذه الفترة")}</div>`;
+			wrap.innerHTML = `<div class="text-muted" style="padding:20px;text-align:center;">${__("No sales for this period")}</div>`;
 			return;
 		}
 		const self = this;
@@ -286,7 +286,7 @@ class SalesMonitorPage {
 			data-bdata="${bData}"
 			data-date="${data.end}"
 			style="white-space:nowrap;">
-			${frappe.utils.icon("accounting", "xs")} ${__("ترحيل")}
+			${frappe.utils.icon("accounting", "xs")} ${__("Post JE")}
 		</button>
 	</td>
 </tr>`;
@@ -306,16 +306,16 @@ class SalesMonitorPage {
 		<col class="sm-bst-col-je" />
 	</colgroup>
 	<thead><tr>
-		<th class="sm-bst-branch">${__("الفرع")}</th>
-		<th class="sm-bst-count">${__("الفواتير")}</th>
-		<th class="sm-bst-num">${__("صافي المبيعات")}</th>
-		<th class="sm-bst-num">${__("ضريبة VAT")}</th>
-		<th class="sm-bst-num">${__("الإجمالي")}</th>
-		<th class="sm-bst-center">${__("قيد يومي")}</th>
+		<th class="sm-bst-branch">${__("Branch")}</th>
+		<th class="sm-bst-count">${__("Invoices")}</th>
+		<th class="sm-bst-num">${__("Net Sales")}</th>
+		<th class="sm-bst-num">${__("VAT Tax")}</th>
+		<th class="sm-bst-num">${__("Total")}</th>
+		<th class="sm-bst-center">${__("Journal Entry")}</th>
 	</tr></thead>
 	<tbody>${rows}</tbody>
 	<tfoot><tr>
-		<td class="sm-bst-branch"><b>${__("الإجمالي")}</b></td>
+		<td class="sm-bst-branch"><b>${__("Grand Total")}</b></td>
 		<td class="sm-bst-count">${data.grand_count}</td>
 		<td class="sm-bst-num"></td>
 		<td class="sm-bst-num"></td>
@@ -324,7 +324,7 @@ class SalesMonitorPage {
 	</tr></tfoot>
 </table>
 </div>
-<div class="text-muted small" style="padding:6px 12px;">${__("الفترة")}: ${pLabel}</div>`;
+<div class="text-muted small" style="padding:6px 12px;">${__("Period")}: ${pLabel}</div>`;
 
 		// Wire posting buttons
 		wrap.querySelectorAll(".sm-post-je-btn").forEach(btn => {
@@ -361,7 +361,7 @@ class SalesMonitorPage {
 		const taxFmt     = frappe.format(branch_data.tax,   { fieldtype: "Currency" });
 
 		const d = new frappe.ui.Dialog({
-			title: `${__("ترحيل مبيعات")} — ${branch_data.branch}`,
+			title: `${__("Post Sales")} — ${branch_data.branch}`,
 			size: "large",
 			fields: [
 				{ fieldtype: "HTML", options: `
@@ -379,30 +379,30 @@ class SalesMonitorPage {
 							<span>${__("الإجمالي")}</span><b style="color:var(--blue);font-size:15px;">${totalFmt}</b>
 						</div>
 					</div>` },
-				{ fieldtype: "Section Break", label: __("إعدادات القيد") },
-				{ label: __("الشركة"), fieldname: "company", fieldtype: "Select",
+				{ fieldtype: "Section Break", label: __("Entry Settings") },
+				{ label: __("Company"), fieldname: "company", fieldtype: "Select",
 				  options: companyNames.join("\n"), reqd: 1,
 				  default: companyNames[0] || "" },
-				{ label: __("تاريخ القيد"), fieldname: "posting_date", fieldtype: "Date",
+				{ label: __("Posting Date"), fieldname: "posting_date", fieldtype: "Date",
 				  reqd: 1, default: posting_date },
-				{ label: __("ملاحظة"), fieldname: "narration", fieldtype: "Small Text",
+				{ label: __("Narration"), fieldname: "narration", fieldtype: "Small Text",
 				  default: `مبيعات فرع ${branch_data.branch} بتاريخ ${posting_date}` },
-				{ fieldtype: "Section Break", label: __("الحساب الدائن (المبيعات)") },
-				{ label: __("حساب المبيعات (دائن)"), fieldname: "credit_account",
+				{ fieldtype: "Section Break", label: __("Credit Account (Sales)") },
+				{ label: __("Sales Account (Credit)"), fieldname: "credit_account",
 				  fieldtype: "Select", reqd: 1,
 				  options: (selected_company ? selected_company.income_accounts : []).join("\n") },
-				{ fieldtype: "Section Break", label: __("طرق الدفع (مدين)") },
+				{ fieldtype: "Section Break", label: __("Payment Methods (Debit)") },
 				{ fieldtype: "HTML", fieldname: "je_rows_html",
 				  options: this._build_je_rows_html(branch_data, selected_company) },
 			],
-			primary_action_label: __("إنشاء القيد"),
-			primary_action: async (values) => {
+				primary_action_label: __("Create Entry"),
+				primary_action: async (values) => {
 				// Collect rows from DOM
 				const rows = this._collect_je_rows(d, values);
 				if (!rows) return;
 				try {
 					d.disable_primary_action();
-					d.set_title(`${__("جارٍ الإنشاء…")}`);
+					d.set_title(`${__("Creating...")}`); 
 					const res = await this._call(
 						"zatca_dashboard.api.invoices.post_branch_journal_entry",
 						{
@@ -416,13 +416,13 @@ class SalesMonitorPage {
 					d.hide();
 					const link = frappe.utils.get_form_link("Journal Entry", res.name, true);
 					frappe.msgprint({
-						title: __("تم إنشاء القيد بنجاح"),
-						message: `${__("رقم القيد")}: <b><a href="${link}">${res.name}</a></b><br>${__("الحالة")}: ${__("مسودة")}`,
+						title: __("Journal Entry created successfully"),
+						message: `${__("Entry No.")}: <b><a href="${link}">${res.name}</a></b><br>${__("Status")}: ${__("Draft")}`,
 						indicator: "green",
 					});
 				} catch(e) {
 					d.enable_primary_action();
-					d.set_title(`${__("ترحيل مبيعات")} — ${branch_data.branch}`);
+					d.set_title(`${__("Post Sales")} — ${branch_data.branch}`);
 				}
 			},
 		});
@@ -456,7 +456,7 @@ class SalesMonitorPage {
 		const def_row = `
 <tr class="sm-je-row">
 	<td><select class="form-control input-xs sm-je-account">${options_html}</select></td>
-	<td><input type="text" class="form-control input-xs sm-je-remark" placeholder="${__("وصف")}" /></td>
+	<td><input type="text" class="form-control input-xs sm-je-remark" placeholder="${__("Description")}" /></td>
 	<td><input type="number" class="form-control input-xs sm-je-amount" value="${branch_data.total}" step="0.01" min="0" /></td>
 	<td><button class="btn btn-xs btn-danger sm-rm-row" style="padding:2px 6px;">✕</button></td>
 </tr>`;
@@ -465,15 +465,15 @@ class SalesMonitorPage {
 <div class="sm-je-rows-wrap">
 	<table class="table table-condensed" style="margin:0;">
 		<thead><tr>
-			<th style="width:45%;">${__("الحساب (مدين)")}</th>
-			<th style="width:30%;">${__("طريقة الدفع / وصف")}</th>
-			<th style="width:18%;">${__("المبلغ")}</th>
+			<th style="width:45%;">${__("Account (Debit)")}</th>
+			<th style="width:30%;">${__("Payment Method / Description")}</th>
+			<th style="width:18%;">${__("Amount")}</th>
 			<th style="width:7%;"></th>
 		</tr></thead>
 		<tbody id="sm-je-tbody">${def_row}</tbody>
 	</table>
 	<button class="btn btn-xs btn-default sm-add-row" style="margin:6px 0;">
-		+ ${__("إضافة سطر")}
+		+ ${__("Add Row")}
 	</button>
 	<div id="sm-je-balance-msg" style="font-size:12px;margin-top:4px;"></div>
 </div>`;
@@ -494,7 +494,7 @@ class SalesMonitorPage {
 				const tr = document.createElement("tr");
 				tr.className = "sm-je-row";
 				tr.innerHTML = firstRow
-					? `<td>${firstRow.querySelector("td:nth-child(1)").innerHTML}</td><td><input type="text" class="form-control input-xs sm-je-remark" placeholder="${__("وصف")}" /></td><td><input type="number" class="form-control input-xs sm-je-amount" value="0" step="0.01" min="0" /></td><td><button class="btn btn-xs btn-danger sm-rm-row" style="padding:2px 6px;">✕</button></td>`
+					? `<td>${firstRow.querySelector("td:nth-child(1)").innerHTML}</td><td><input type="text" class="form-control input-xs sm-je-remark" placeholder="${__("Description")}" /></td><td><input type="number" class="form-control input-xs sm-je-amount" value="0" step="0.01" min="0" /></td><td><button class="btn btn-xs btn-danger sm-rm-row" style="padding:2px 6px;">✕</button></td>`
 					: "";
 				tbody.appendChild(tr);
 				self._wire_je_rows(dialog);
@@ -514,10 +514,10 @@ class SalesMonitorPage {
 
 	_collect_je_rows(dialog, values) {
 		const wrap = dialog.$wrapper[0].querySelector(".sm-je-rows-wrap");
-		if (!wrap) { frappe.msgprint(__("خطأ: لم يتم العثور على السطور")); return null; }
+		if (!wrap) { frappe.msgprint(__("Error: rows container not found")); return null; }
 
 		const credit_account = values.credit_account;
-		if (!credit_account) { frappe.msgprint(__("يرجى اختيار حساب المبيعات (دائن)")); return null; }
+		if (!credit_account) { frappe.msgprint(__("Please select the sales (credit) account")); return null; }
 
 		const rows_dom = wrap.querySelectorAll(".sm-je-row");
 		let total_debit = 0;
@@ -527,17 +527,17 @@ class SalesMonitorPage {
 			const account = tr.querySelector(".sm-je-account")?.value;
 			const remark  = tr.querySelector(".sm-je-remark")?.value  || "";
 			const amount  = parseFloat(tr.querySelector(".sm-je-amount")?.value) || 0;
-			if (!account) { frappe.msgprint(__("يرجى اختيار الحساب لكل سطر")); return null; }
+			if (!account) { frappe.msgprint(__("Please select an account for each row")); return null; }
 			if (amount > 0) {
 				rows.push({ account, remark, debit: amount, credit: 0 });
 				total_debit = round(total_debit + amount, 2);
 			}
 		}
 
-		if (!rows.length) { frappe.msgprint(__("لا توجد سطور صالحة")); return null; }
+		if (!rows.length) { frappe.msgprint(__("No valid rows")); return null; }
 
 		// Add credit row
-		rows.push({ account: credit_account, remark: __("إجمالي المبيعات"), debit: 0, credit: total_debit });
+		rows.push({ account: credit_account, remark: __("Total Sales"), debit: 0, credit: total_debit });
 		return rows;
 
 		function round(v, d) { return Math.round(v * Math.pow(10,d)) / Math.pow(10,d); }
@@ -550,7 +550,7 @@ class SalesMonitorPage {
 			if (!data) return;
 			this._render_kpi(data);
 			const bar = this.page.main[0].querySelector("#sm-status-bar");
-			if (bar) bar.textContent = __("آخر تحديث") + ": " + data.as_of;
+			if (bar) bar.textContent = __("Last updated") + ": " + data.as_of;
 		} catch(e) {
 			this._kpi_error();
 		}
@@ -558,10 +558,10 @@ class SalesMonitorPage {
 
 	_render_kpi(data) {
 		const slots = [
-			{ key: "today",  label: __("اليوم"),    icon: "calendar",  col: "var(--blue)"   },
-			{ key: "week",   label: __("الأسبوع"),  icon: "trend-up",  col: "var(--green)"  },
-			{ key: "month",  label: __("الشهر"),    icon: "pie-chart", col: "var(--orange)" },
-			{ key: "year",   label: __("السنة"),    icon: "bar-chart", col: "var(--purple)" },
+			{ key: "today",  label: __("Today"),      icon: "calendar",  col: "var(--blue)"   },
+			{ key: "week",   label: __("This Week"),   icon: "trend-up",  col: "var(--green)"  },
+			{ key: "month",  label: __("This Month"),  icon: "pie-chart", col: "var(--orange)" },
+			{ key: "year",   label: __("This Year"),   icon: "bar-chart", col: "var(--purple)" },
 		];
 		slots.forEach((slot, i) => {
 			const d     = data[slot.key];
@@ -582,7 +582,7 @@ class SalesMonitorPage {
 	</div>
 	<div class="sm-kpi-value">${total}</div>
 	<div class="sm-kpi-meta">
-		<span class="indicator-pill green" style="font-size:11px;">${count} ${__("فاتورة")}</span>
+			<span class="indicator-pill green" style="font-size:11px;">${count} ${__("invoices")}</span>
 		<span class="${pctCls}" style="font-size:11px;margin-${frappe.utils.is_rtl() ? "right" : "left"}:8px;">
 			${arrow} ${pctAbs}%
 		</span>
@@ -596,7 +596,7 @@ class SalesMonitorPage {
 	_kpi_error() {
 		for (let i = 0; i < 4; i++) {
 			const card = this.page.main[0].querySelector(`#sm-kpi-${i}`);
-			if (card) card.innerHTML = `<div class="text-muted small" style="padding:16px;">${__("تعذّر التحميل")}</div>`;
+			if (card) card.innerHTML = `<div class="text-muted small" style="padding:16px;">${__("Failed to load")}</div>`;
 		}
 	}
 
@@ -614,7 +614,7 @@ class SalesMonitorPage {
 			if (!data) return;
 			this._render_chart(wrap, data);
 		} catch(e) {
-			wrap.innerHTML = `<div class="text-muted" style="padding:40px;">${__("تعذّر تحميل الرسم البياني")}</div>`;
+			wrap.innerHTML = `<div class="text-muted" style="padding:40px;">${__("Failed to load chart")}</div>`;
 		}
 	}
 
@@ -633,8 +633,8 @@ class SalesMonitorPage {
 				data: {
 					labels:   data.categories,
 					datasets: [
-						{ name: __("الفترة الحالية"), values: data.current,  chartType: "bar"  },
-						{ name: __("الفترة السابقة"), values: data.previous, chartType: "line" },
+						{ name: __("Current Period"), values: data.current,  chartType: "bar"  },
+						{ name: __("Previous Period"), values: data.previous, chartType: "line" },
 					],
 				},
 				colors:     ["#5e64ff", "#a3b0cc"],
@@ -658,7 +658,7 @@ class SalesMonitorPage {
 			const cls = pct >= 0 ? "text-success" : "text-danger";
 			summaryEl.innerHTML = `
 				<span class="${cls}">${pct >= 0 ? "▲" : "▼"} ${Math.abs(pct)}%</span>
-				&nbsp;${__("مقارنةً بالفترة السابقة")}
+				&nbsp;${__("vs previous period")}
 			`;
 		}
 	}
@@ -686,8 +686,8 @@ class SalesMonitorPage {
 		${bars}
 	</div>
 	<div style="margin-top:12px;display:flex;gap:16px;font-size:12px;">
-		<span><span style="display:inline-block;width:12px;height:12px;background:#5e64ff;border-radius:2px;margin-left:4px;"></span>${__("الفترة الحالية")}</span>
-		<span><span style="display:inline-block;width:12px;height:12px;background:#a3b0cc;border-radius:2px;margin-left:4px;"></span>${__("الفترة السابقة")}</span>
+		<span><span style="display:inline-block;width:12px;height:12px;background:#5e64ff;border-radius:2px;margin-left:4px;"></span>${__("Current Period")}</span>
+		<span><span style="display:inline-block;width:12px;height:12px;background:#a3b0cc;border-radius:2px;margin-left:4px;"></span>${__("Previous Period")}</span>
 	</div>
 </div>`;
 	}
@@ -700,7 +700,7 @@ class SalesMonitorPage {
 			this._render_branches(branches);
 		} catch(e) {
 			const el = this.page.main[0].querySelector("#sm-branches-list");
-			if (el) el.innerHTML = `<div class="text-muted small" style="padding:16px;">${__("تعذّر التحميل")}</div>`;
+			if (el) el.innerHTML = `<div class="text-muted small" style="padding:16px;">${__("Failed to load")}</div>`;
 		}
 	}
 
@@ -713,11 +713,11 @@ class SalesMonitorPage {
 		if (badge) {
 			badge.style.display = "";
 			badge.className = connected === branches.length ? "indicator-pill green" : "indicator-pill orange";
-			badge.textContent = `${connected} / ${branches.length} ${__("متصل")}`;
+			badge.textContent = `${connected} / ${branches.length} ${__("Connected")}`;
 		}
 
 		if (!branches.length) {
-			el.innerHTML = `<div class="text-muted small" style="padding:16px;">${__("لا توجد فروع")}</div>`;
+			el.innerHTML = `<div class="text-muted small" style="padding:16px;">${__("No branches")}</div>`;
 			return;
 		}
 
@@ -727,12 +727,12 @@ class SalesMonitorPage {
 	<div class="sm-branch-info">
 		<div class="sm-branch-name">${b.name || b.code}</div>
 		${b.last_sync_at
-			? `<div class="text-muted" style="font-size:11px;">${__("آخر مزامنة")}: ${frappe.datetime.prettyDate(b.last_sync_at)}</div>`
-			: `<div class="text-muted" style="font-size:11px;">${__("لم يتصل بعد")}</div>`
+			? `<div class="text-muted" style="font-size:11px;">${__("Last sync")}: ${frappe.datetime.prettyDate(b.last_sync_at)}</div>`
+				: `<div class="text-muted" style="font-size:11px;">${__("Never synced")}</div>`
 		}
 	</div>
 	<span class="indicator-pill ${b.connected ? "green" : "red"}" style="font-size:10px;">
-		${b.connected ? __("متصل") : __("غير متصل")}
+		${b.connected ? __("Connected") : __("Disconnected")}
 	</span>
 </div>
 `).join("<div style='height:1px;background:var(--border-color);margin:0 4px;'></div>");
@@ -749,7 +749,7 @@ class SalesMonitorPage {
 			this._render_invoices(this._all_invoices);
 		} catch(e) {
 			const el = this.page.main[0].querySelector("#sm-invoices-wrap");
-			if (el) el.innerHTML = `<div class="text-muted" style="padding:20px;">${__("تعذّر تحميل الفواتير")}</div>`;
+			if (el) el.innerHTML = `<div class="text-muted" style="padding:20px;">${__("Failed to load invoices")}</div>`;
 		}
 	}
 
@@ -771,15 +771,15 @@ class SalesMonitorPage {
 		if (!el) return;
 
 		if (!invoices.length) {
-			el.innerHTML = `<div class="text-muted" style="padding:20px;text-align:center;">${__("لا توجد فواتير")}</div>`;
+			el.innerHTML = `<div class="text-muted" style="padding:20px;text-align:center;">${__("No invoices")}</div>`;
 			return;
 		}
 
 		const STATUS_MAP = {
-			"CLEARED":   { cls: "green",  lbl: __("مُعتمدة")   },
-			"REPORTED":  { cls: "blue",   lbl: __("مُبلَّغة")  },
-			"SIGNED":    { cls: "orange", lbl: __("موقّعة")    },
-			"NOT_SUBMITTED": { cls: "grey", lbl: __("مسودة")   },
+			"CLEARED":       { cls: "green",  lbl: __("Cleared")       },
+			"REPORTED":      { cls: "blue",   lbl: __("Reported")      },
+			"SIGNED":        { cls: "orange", lbl: __("Signed")        },
+			"NOT_SUBMITTED": { cls: "grey",   lbl: __("Not Submitted") },
 		};
 
 		const rows = invoices.map(inv => {
@@ -803,13 +803,13 @@ class SalesMonitorPage {
 <div style="overflow-x:auto;">
 <table class="table table-hover" style="margin:0;">
 	<thead><tr>
-		<th>${__("التاريخ")}</th>
-		<th>${__("رقم الفاتورة")}</th>
-		<th>${__("العميل")}</th>
-		<th>${__("الفرع")}</th>
-		<th class="text-right">${__("الإجمالي")}</th>
-		<th class="text-right">${__("الضريبة")}</th>
-		<th>${__("الحالة")}</th>
+		<th>${__("Date")}</th>
+		<th>${__("Invoice No.")}</th>
+		<th>${__("Customer")}</th>
+		<th>${__("Branch")}</th>
+		<th class="text-right">${__("Total")}</th>
+		<th class="text-right">${__("Tax")}</th>
+		<th>${__("Status")}</th>
 	</tr></thead>
 	<tbody>${rows}</tbody>
 </table>
