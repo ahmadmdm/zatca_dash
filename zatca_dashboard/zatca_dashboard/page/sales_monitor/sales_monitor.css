@@ -125,20 +125,46 @@
 }
 
 /* ── Branch Sales Table ── */
+.sm-branch-sales-table {
+	table-layout: fixed;
+	width: 100%;
+	margin: 0;
+}
+.sm-bst-col-branch { width: 28%; }
+.sm-bst-col-count  { width:  8%; }
+.sm-bst-col-net    { width: 18%; }
+.sm-bst-col-tax    { width: 15%; }
+.sm-bst-col-total  { width: 18%; }
+.sm-bst-col-je     { width: 13%; }
+
+.sm-branch-sales-table th,
+.sm-branch-sales-table td {
+	vertical-align: middle !important;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .sm-branch-sales-table thead th {
 	background: var(--bg-color);
 	font-size: 12px;
 	font-weight: 600;
-	white-space: nowrap;
 	border-bottom: 2px solid var(--border-color);
+}
+.sm-branch-sales-table tfoot td {
+	border-top: 2px solid var(--border-color);
+	background: var(--bg-color);
+	font-size: 13px;
 }
 .sm-branch-sales-table tbody tr:hover {
 	background: var(--fg-hover-color);
 }
-.sm-branch-sales-table tfoot td {
-	border-top: 2px solid var(--border-color);
-	font-size: 13px;
-}
+
+/* column alignment — explicit to work consistently in both LTR & RTL */
+.sm-bst-branch { text-align: right; }
+.sm-bst-count  { text-align: center; }
+.sm-bst-num    { text-align: left; }
+.sm-bst-center { text-align: center; }
+.sm-bst-muted  { color: var(--text-muted); }
 .sm-date-range-wrap {
 	display: flex;
 	align-items: center;

@@ -272,16 +272,15 @@ class SalesMonitorPage {
 			const total = frappe.format(b.total, { fieldtype: "Currency" });
 			const net   = frappe.format(b.net,   { fieldtype: "Currency" });
 			const tax   = frappe.format(b.tax,   { fieldtype: "Currency" });
-			// Encode safely
 			const bData = encodeURIComponent(JSON.stringify(b));
 			return `
 <tr>
-	<td><b>${frappe.utils.xss_sanitise(b.branch)}</b></td>
-	<td class="text-center">${b.count}</td>
-	<td class="text-right">${net}</td>
-	<td class="text-right text-muted">${tax}</td>
-	<td class="text-right"><b>${total}</b></td>
-	<td class="text-center">
+	<td class="sm-bst-branch"><b>${frappe.utils.xss_sanitise(b.branch)}</b></td>
+	<td class="sm-bst-count">${b.count}</td>
+	<td class="sm-bst-num">${net}</td>
+	<td class="sm-bst-num sm-bst-muted">${tax}</td>
+	<td class="sm-bst-num"><b>${total}</b></td>
+	<td class="sm-bst-center">
 		<button class="btn btn-xs btn-default sm-post-je-btn"
 			data-branch="${frappe.utils.xss_sanitise(b.branch)}"
 			data-bdata="${bData}"
@@ -297,21 +296,30 @@ class SalesMonitorPage {
 
 		wrap.innerHTML = `
 <div style="overflow-x:auto;">
-<table class="table table-hover sm-branch-sales-table" style="margin:0;">
+<table class="table table-hover sm-branch-sales-table">
+	<colgroup>
+		<col class="sm-bst-col-branch" />
+		<col class="sm-bst-col-count" />
+		<col class="sm-bst-col-net" />
+		<col class="sm-bst-col-tax" />
+		<col class="sm-bst-col-total" />
+		<col class="sm-bst-col-je" />
+	</colgroup>
 	<thead><tr>
-		<th>${__("الفرع")}</th>
-		<th class="text-center">${__("الفواتير")}</th>
-		<th class="text-right">${__("صافي المبيعات")}</th>
-		<th class="text-right">${__("الضريبة")}</th>
-		<th class="text-right">${__("الإجمالي")}</th>
-		<th class="text-center">${__("قيد يومي")}</th>
+		<th class="sm-bst-branch">${__("الفرع")}</th>
+		<th class="sm-bst-count">${__("الفواتير")}</th>
+		<th class="sm-bst-num">${__("صافي المبيعات")}</th>
+		<th class="sm-bst-num">${__("ضريبة VAT")}</th>
+		<th class="sm-bst-num">${__("الإجمالي")}</th>
+		<th class="sm-bst-center">${__("قيد يومي")}</th>
 	</tr></thead>
 	<tbody>${rows}</tbody>
-	<tfoot><tr style="background:var(--bg-color);font-weight:600;">
-		<td>${__("الإجمالي")}</td>
-		<td class="text-center">${data.grand_count}</td>
-		<td colspan="2"></td>
-		<td class="text-right">${grand_total}</td>
+	<tfoot><tr>
+		<td class="sm-bst-branch"><b>${__("الإجمالي")}</b></td>
+		<td class="sm-bst-count">${data.grand_count}</td>
+		<td class="sm-bst-num"></td>
+		<td class="sm-bst-num"></td>
+		<td class="sm-bst-num"><b>${grand_total}</b></td>
 		<td></td>
 	</tr></tfoot>
 </table>
