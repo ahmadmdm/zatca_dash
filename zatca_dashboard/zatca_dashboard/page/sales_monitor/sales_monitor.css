@@ -1,0 +1,132 @@
+/* ─── Sales Monitor Page – Frappe UI Styles ─────────────────────────────────── */
+
+/* Card base */
+.sm-card {
+	padding: 20px;
+	margin-bottom: 0;
+}
+
+.sm-card-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.sm-section-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--heading-color);
+}
+
+/* ── KPI Cards ── */
+.sm-kpi-col { padding: 0 8px; }
+
+.sm-kpi-card {
+	position: relative;
+	overflow: hidden;
+	min-height: 110px;
+	padding: 0 !important;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.sm-kpi-inner {
+	padding: 16px 18px 12px;
+	flex: 1;
+	position: relative;
+	z-index: 1;
+}
+
+.sm-kpi-bar {
+	height: 4px;
+	width: 100%;
+	flex-shrink: 0;
+}
+
+.sm-kpi-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.sm-kpi-label {
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+	color: var(--text-muted);
+}
+
+.sm-kpi-icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.sm-kpi-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: var(--heading-color);
+	line-height: 1.1;
+}
+
+.sm-kpi-meta {
+	margin-top: 6px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+/* ── Skeleton loader ── */
+.sm-kpi-skeleton { padding: 16px 18px; }
+
+.sm-skel-line {
+	background: var(--skeleton-bg, #e8eaed);
+	border-radius: 4px;
+	animation: sm-pulse 1.4s ease-in-out infinite;
+}
+
+.sm-skel-sm { height: 10px; width: 50%; }
+.sm-skel-lg { height: 28px; width: 80%; }
+
+@keyframes sm-pulse {
+	0%, 100% { opacity: 1; }
+	50%       { opacity: .45; }
+}
+
+/* ── Period tabs ── */
+.sm-period-tabs {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+.sm-period-tabs .btn { border-radius: 4px !important; }
+
+/* ── Branches list ── */
+.sm-branch-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 4px;
+}
+
+.sm-branch-info { flex: 1; }
+
+.sm-branch-name {
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--heading-color);
+}
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+	.sm-kpi-col  { margin-bottom: 12px; }
+	.sm-kpi-value { font-size: 20px; }
+	.sm-card-head { flex-direction: column; align-items: flex-start; }
+}
