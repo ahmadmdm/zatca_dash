@@ -124,6 +124,43 @@
 	color: var(--heading-color);
 }
 
+/* ── Branch Sales Table ── */
+.sm-branch-sales-table thead th {
+	background: var(--bg-color);
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+	border-bottom: 2px solid var(--border-color);
+}
+.sm-branch-sales-table tbody tr:hover {
+	background: var(--fg-hover-color);
+}
+.sm-branch-sales-table tfoot td {
+	border-top: 2px solid var(--border-color);
+	font-size: 13px;
+}
+.sm-bp-btn {
+	margin-left: 4px;
+	margin-bottom: 2px;
+}
+
+/* ── JE Dialog ── */
+.sm-je-summary {
+	background: var(--bg-color);
+	border-radius: 6px;
+	padding: 10px 14px;
+	margin-bottom: 8px;
+}
+.sm-je-sum-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 3px 0;
+	font-size: 13px;
+}
+.sm-je-sum-row span { color: var(--text-muted); }
+.sm-je-rows-wrap .table { font-size: 12px; }
+.sm-je-rows-wrap thead th { background: var(--bg-color); font-weight: 600; }
+
 /* ── Responsive ── */
 @media (max-width: 767px) {
 	.sm-kpi-col  { margin-bottom: 12px; }

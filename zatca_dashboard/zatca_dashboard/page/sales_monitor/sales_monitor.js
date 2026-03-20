@@ -24,11 +24,13 @@ frappe.pages["sales-monitor"].on_page_show = function (wrapper) {
 // ─────────────────────────────────────────────────────────────────────────────
 class SalesMonitorPage {
 	constructor(page, wrapper) {
-		this.page    = page;
-		this.wrapper = wrapper;
-		this.period  = "week";  // default chart period
-		this._chart  = null;
-		this._refresh_timer = null;
+		this.page            = page;
+		this.wrapper         = wrapper;
+		this.period          = "week";   // chart period
+		this.branch_period   = "today";  // branch sales period
+		this._chart          = null;
+		this._refresh_timer  = null;
+		this._companies_data = null;
 	}
 
 	// ── Init ─────────────────────────────────────────────────────────────────
@@ -78,6 +80,26 @@ class SalesMonitorPage {
 	<!-- KPI Cards -->
 	<div class="sm-kpi-row row" id="sm-kpi-row">
 		${[0,1,2,3].map(i => this._kpi_placeholder(i)).join("")}
+	</div>
+
+	<!-- Branch Sales Table -->
+	<div class="row" style="margin-top:20px;">
+		<div class="col-xs-12">
+			<div class="frappe-card sm-card" id="sm-branch-sales-card">
+				<div class="sm-card-head">
+					<div class="sm-section-title">${__("مبيعات الفروع")}</div>
+					<div>
+						<button class="btn btn-xs btn-primary sm-bp-btn" data-period="today">${__("اليوم")}</button>
+						<button class="btn btn-xs btn-default sm-bp-btn" data-period="week">${__("الأسبوع")}</button>
+						<button class="btn btn-xs btn-default sm-bp-btn" data-period="month">${__("الشهر")}</button>
+						<button class="btn btn-xs btn-default sm-bp-btn" data-period="year">${__("السنة")}</button>
+					</div>
+				</div>
+				<div id="sm-branch-sales-wrap" style="min-height:80px;">
+					<div style="text-align:center;padding:30px 0">${frappe.utils.icon("spinner", "lg")}</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- Chart + Branch Status -->
@@ -141,8 +163,20 @@ class SalesMonitorPage {
 `;
 		this.page.main.html(html);
 
-		// Wire period buttons
+		// Wire branch-period buttons
 		const self = this;
+		this.page.main[0].querySelectorAll(".sm-bp-btn").forEach(btn => {
+			btn.addEventListener("click", () => {
+				self.branch_period = btn.dataset.period;
+				self._load_branch_sales(btn.dataset.period);
+				self.page.main[0].querySelectorAll(".sm-bp-btn").forEach(b => {
+					b.classList.toggle("btn-primary", b.dataset.period === self.branch_period);
+					b.classList.toggle("btn-default",  b.dataset.period !== self.branch_period);
+				});
+			});
+		});
+
+		// Wire chart period buttons
 		this.page.main[0].querySelectorAll(".sm-period-btn").forEach(btn => {
 			btn.addEventListener("click", () => {
 				self.period = btn.dataset.period;
@@ -182,6 +216,7 @@ class SalesMonitorPage {
 	// ── Refresh all data ─────────────────────────────────────────────────────
 	refresh() {
 		this._load_kpi();
+		this._load_branch_sales(this.branch_period);
 		this._load_chart();
 		this._load_branches();
 		this._load_invoices();
@@ -197,6 +232,298 @@ class SalesMonitorPage {
 				error:    reject,
 			});
 		});
+	}
+
+	// ── Branch Sales Table ──────────────────────────────────────────────────
+	async _load_branch_sales(period) {
+		const wrap = this.page.main[0].querySelector("#sm-branch-sales-wrap");
+		if (!wrap) return;
+		wrap.innerHTML = `<div style="text-align:center;padding:24px 0">${frappe.utils.icon("spinner", "lg")}</div>`;
+		try {
+			const data = await this._call(
+				"zatca_dashboard.api.invoices.get_branch_sales",
+				{ period }
+			);
+			if (!data) return;
+			this._render_branch_sales(wrap, data);
+		} catch(e) {
+			wrap.innerHTML = `<div class="text-muted" style="padding:20px;">${__("تعذّر تحميل مبيعات الفروع")}</div>`;
+		}
+	}
+
+	_render_branch_sales(wrap, data) {
+		if (!data.data || !data.data.length) {
+			wrap.innerHTML = `<div class="text-muted" style="padding:20px;text-align:center;">${__("لا توجد مبيعات في هذه الفترة")}</div>`;
+			return;
+		}
+		const self = this;
+		const periodLabels = { today: __("اليوم"), week: __("الأسبوع"), month: __("الشهر"), year: __("السنة") };
+		const pLabel = periodLabels[data.period] || data.period;
+		const rows = data.data.map(b => {
+			const total = frappe.format(b.total, { fieldtype: "Currency" });
+			const net   = frappe.format(b.net,   { fieldtype: "Currency" });
+			const tax   = frappe.format(b.tax,   { fieldtype: "Currency" });
+			// Encode safely
+			const bData = encodeURIComponent(JSON.stringify(b));
+			return `
+<tr>
+	<td><b>${frappe.utils.xss_sanitise(b.branch)}</b></td>
+	<td class="text-center">${b.count}</td>
+	<td class="text-right">${net}</td>
+	<td class="text-right text-muted">${tax}</td>
+	<td class="text-right"><b>${total}</b></td>
+	<td class="text-center">
+		<button class="btn btn-xs btn-default sm-post-je-btn"
+			data-branch="${frappe.utils.xss_sanitise(b.branch)}"
+			data-bdata="${bData}"
+			data-date="${data.end}"
+			style="white-space:nowrap;">
+			${frappe.utils.icon("accounting", "xs")} ${__("ترحيل")}
+		</button>
+	</td>
+</tr>`;
+		}).join("");
+
+		const grand_total = frappe.format(data.grand_total, { fieldtype: "Currency" });
+
+		wrap.innerHTML = `
+<div style="overflow-x:auto;">
+<table class="table table-hover sm-branch-sales-table" style="margin:0;">
+	<thead><tr>
+		<th>${__("الفرع")}</th>
+		<th class="text-center">${__("الفواتير")}</th>
+		<th class="text-right">${__("صافي المبيعات")}</th>
+		<th class="text-right">${__("الضريبة")}</th>
+		<th class="text-right">${__("الإجمالي")}</th>
+		<th class="text-center">${__("قيد يومي")}</th>
+	</tr></thead>
+	<tbody>${rows}</tbody>
+	<tfoot><tr style="background:var(--bg-color);font-weight:600;">
+		<td>${__("الإجمالي")}</td>
+		<td class="text-center">${data.grand_count}</td>
+		<td colspan="2"></td>
+		<td class="text-right">${grand_total}</td>
+		<td></td>
+	</tr></tfoot>
+</table>
+</div>
+<div class="text-muted small" style="padding:6px 12px;">${__("الفترة")}: ${pLabel} &nbsp;|&nbsp; ${data.start} ${data.start !== data.end ? "← " + data.end : ""}</div>`;
+
+		// Wire posting buttons
+		wrap.querySelectorAll(".sm-post-je-btn").forEach(btn => {
+			btn.addEventListener("click", () => {
+				const bdata = JSON.parse(decodeURIComponent(btn.dataset.bdata));
+				self._show_je_dialog(bdata, btn.dataset.date);
+			});
+		});
+	}
+
+	// ── Journal Entry Dialog ─────────────────────────────────────────────────
+	async _show_je_dialog(branch_data, posting_date) {
+		// Load companies data if not cached
+		if (!this._companies_data) {
+			try {
+				this._companies_data = await this._call("zatca_dashboard.api.invoices.get_companies_for_je");
+			} catch(e) {
+				this._companies_data = [];
+			}
+		}
+
+		const companies = (this._companies_data || []);
+		const companyNames = companies.map(c => c.company);
+
+		let selected_company = companies[0] || null;
+
+		const get_accounts = (company_name) => {
+			const c = companies.find(x => x.company === company_name);
+			return c || { income_accounts: [], debit_accounts: [] };
+		};
+
+		const totalFmt   = frappe.format(branch_data.total, { fieldtype: "Currency" });
+		const netFmt     = frappe.format(branch_data.net,   { fieldtype: "Currency" });
+		const taxFmt     = frappe.format(branch_data.tax,   { fieldtype: "Currency" });
+
+		const d = new frappe.ui.Dialog({
+			title: `${__("ترحيل مبيعات")} — ${branch_data.branch}`,
+			size: "large",
+			fields: [
+				{ fieldtype: "HTML", options: `
+					<div class="sm-je-summary">
+						<div class="sm-je-sum-row">
+							<span>${__("الفرع")}</span><b>${frappe.utils.xss_sanitise(branch_data.branch)}</b>
+						</div>
+						<div class="sm-je-sum-row">
+							<span>${__("صافي المبيعات")}</span><b>${netFmt}</b>
+						</div>
+						<div class="sm-je-sum-row">
+							<span>${__("الضريبة (VAT)")}</span><b>${taxFmt}</b>
+						</div>
+						<div class="sm-je-sum-row" style="border-top:1px solid var(--border-color);padding-top:6px;">
+							<span>${__("الإجمالي")}</span><b style="color:var(--blue);font-size:15px;">${totalFmt}</b>
+						</div>
+					</div>` },
+				{ fieldtype: "Section Break", label: __("إعدادات القيد") },
+				{ label: __("الشركة"), fieldname: "company", fieldtype: "Select",
+				  options: companyNames.join("\n"), reqd: 1,
+				  default: companyNames[0] || "" },
+				{ label: __("تاريخ القيد"), fieldname: "posting_date", fieldtype: "Date",
+				  reqd: 1, default: posting_date },
+				{ label: __("ملاحظة"), fieldname: "narration", fieldtype: "Small Text",
+				  default: `مبيعات فرع ${branch_data.branch} بتاريخ ${posting_date}` },
+				{ fieldtype: "Section Break", label: __("الحساب الدائن (المبيعات)") },
+				{ label: __("حساب المبيعات (دائن)"), fieldname: "credit_account",
+				  fieldtype: "Select", reqd: 1,
+				  options: (selected_company ? selected_company.income_accounts : []).join("\n") },
+				{ fieldtype: "Section Break", label: __("طرق الدفع (مدين)") },
+				{ fieldtype: "HTML", fieldname: "je_rows_html",
+				  options: this._build_je_rows_html(branch_data, selected_company) },
+			],
+			primary_action_label: __("إنشاء القيد"),
+			primary_action: async (values) => {
+				// Collect rows from DOM
+				const rows = this._collect_je_rows(d, values);
+				if (!rows) return;
+				try {
+					d.disable_primary_action();
+					d.set_title(`${__("جارٍ الإنشاء…")}`);
+					const res = await this._call(
+						"zatca_dashboard.api.invoices.post_branch_journal_entry",
+						{
+							branch:        branch_data.branch,
+							posting_date:  values.posting_date,
+							company:       values.company,
+							rows:          JSON.stringify(rows),
+							narration:     values.narration,
+						}
+					);
+					d.hide();
+					const link = frappe.utils.get_form_link("Journal Entry", res.name, true);
+					frappe.msgprint({
+						title: __("تم إنشاء القيد بنجاح"),
+						message: `${__("رقم القيد")}: <b><a href="${link}">${res.name}</a></b><br>${__("الحالة")}: ${__("مسودة")}`,
+						indicator: "green",
+					});
+				} catch(e) {
+					d.enable_primary_action();
+					d.set_title(`${__("ترحيل مبيعات")} — ${branch_data.branch}`);
+				}
+			},
+		});
+
+		d.show();
+
+		// When company changes, update account dropdowns
+		d.get_field("company").df.onchange = () => {
+			const co_name = d.get_value("company");
+			const co = get_accounts(co_name);
+			// Update credit account options
+			const cf = d.get_field("credit_account");
+			cf.df.options = co.income_accounts.join("\n");
+			cf.refresh();
+			// Re-render rows html
+			const hf = d.get_field("je_rows_html");
+			hf.$wrapper.find(".form-html").html(this._build_je_rows_html(branch_data, co));
+			this._wire_je_rows(d);
+		};
+		// Wire add-row button
+		this._wire_je_rows(d);
+	}
+
+	_build_je_rows_html(branch_data, company) {
+		const debit_accounts = company ? (company.debit_accounts || []) : [];
+		const options_html = debit_accounts.map(a =>
+			`<option value="${frappe.utils.xss_sanitise(a)}">${frappe.utils.xss_sanitise(a)}</option>`
+		).join("");
+
+		// Default first row with total amount
+		const def_row = `
+<tr class="sm-je-row">
+	<td><select class="form-control input-xs sm-je-account">${options_html}</select></td>
+	<td><input type="text" class="form-control input-xs sm-je-remark" placeholder="${__("وصف")}" /></td>
+	<td><input type="number" class="form-control input-xs sm-je-amount" value="${branch_data.total}" step="0.01" min="0" /></td>
+	<td><button class="btn btn-xs btn-danger sm-rm-row" style="padding:2px 6px;">✕</button></td>
+</tr>`;
+
+		return `
+<div class="sm-je-rows-wrap">
+	<table class="table table-condensed" style="margin:0;">
+		<thead><tr>
+			<th style="width:45%;">${__("الحساب (مدين)")}</th>
+			<th style="width:30%;">${__("طريقة الدفع / وصف")}</th>
+			<th style="width:18%;">${__("المبلغ")}</th>
+			<th style="width:7%;"></th>
+		</tr></thead>
+		<tbody id="sm-je-tbody">${def_row}</tbody>
+	</table>
+	<button class="btn btn-xs btn-default sm-add-row" style="margin:6px 0;">
+		+ ${__("إضافة سطر")}
+	</button>
+	<div id="sm-je-balance-msg" style="font-size:12px;margin-top:4px;"></div>
+</div>`;
+	}
+
+	_wire_je_rows(dialog) {
+		const wrap = dialog.$wrapper[0].querySelector(".sm-je-rows-wrap");
+		if (!wrap) return;
+		const self = this;
+
+		// Add row
+		const addBtn = wrap.querySelector(".sm-add-row");
+		if (addBtn) {
+			addBtn.onclick = () => {
+				const tbody = wrap.querySelector("#sm-je-tbody");
+				const firstRow = tbody.querySelector(".sm-je-row");
+				const cloneHTML = firstRow ? firstRow.outerHTML.replace(/value="[^"]*"/, 'value=""').replace(/type="number"/, 'type="number" value="0"') : "";
+				const tr = document.createElement("tr");
+				tr.className = "sm-je-row";
+				tr.innerHTML = firstRow
+					? `<td>${firstRow.querySelector("td:nth-child(1)").innerHTML}</td><td><input type="text" class="form-control input-xs sm-je-remark" placeholder="${__("وصف")}" /></td><td><input type="number" class="form-control input-xs sm-je-amount" value="0" step="0.01" min="0" /></td><td><button class="btn btn-xs btn-danger sm-rm-row" style="padding:2px 6px;">✕</button></td>`
+					: "";
+				tbody.appendChild(tr);
+				self._wire_je_rows(dialog);
+			};
+		}
+
+		// Remove row
+		wrap.querySelectorAll(".sm-rm-row").forEach(btn => {
+			btn.onclick = () => {
+				const tbody = wrap.querySelector("#sm-je-tbody");
+				if (tbody.querySelectorAll(".sm-je-row").length > 1) {
+					btn.closest(".sm-je-row").remove();
+				}
+			};
+		});
+	}
+
+	_collect_je_rows(dialog, values) {
+		const wrap = dialog.$wrapper[0].querySelector(".sm-je-rows-wrap");
+		if (!wrap) { frappe.msgprint(__("خطأ: لم يتم العثور على السطور")); return null; }
+
+		const credit_account = values.credit_account;
+		if (!credit_account) { frappe.msgprint(__("يرجى اختيار حساب المبيعات (دائن)")); return null; }
+
+		const rows_dom = wrap.querySelectorAll(".sm-je-row");
+		let total_debit = 0;
+		const rows = [];
+
+		for (const tr of rows_dom) {
+			const account = tr.querySelector(".sm-je-account")?.value;
+			const remark  = tr.querySelector(".sm-je-remark")?.value  || "";
+			const amount  = parseFloat(tr.querySelector(".sm-je-amount")?.value) || 0;
+			if (!account) { frappe.msgprint(__("يرجى اختيار الحساب لكل سطر")); return null; }
+			if (amount > 0) {
+				rows.push({ account, remark, debit: amount, credit: 0 });
+				total_debit = round(total_debit + amount, 2);
+			}
+		}
+
+		if (!rows.length) { frappe.msgprint(__("لا توجد سطور صالحة")); return null; }
+
+		// Add credit row
+		rows.push({ account: credit_account, remark: __("إجمالي المبيعات"), debit: 0, credit: total_debit });
+		return rows;
+
+		function round(v, d) { return Math.round(v * Math.pow(10,d)) / Math.pow(10,d); }
 	}
 
 	// ── KPI Cards ────────────────────────────────────────────────────────────
