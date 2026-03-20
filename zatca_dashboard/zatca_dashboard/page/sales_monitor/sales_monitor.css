@@ -139,9 +139,15 @@
 	border-top: 2px solid var(--border-color);
 	font-size: 13px;
 }
-.sm-bp-btn {
-	margin-left: 4px;
-	margin-bottom: 2px;
+.sm-date-range-wrap {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+.sm-date-input {
+	width: 140px !important;
+	display: inline-block !important;
 }
 
 /* ── JE Dialog ── */

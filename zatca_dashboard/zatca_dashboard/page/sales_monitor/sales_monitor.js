@@ -27,7 +27,8 @@ class SalesMonitorPage {
 		this.page            = page;
 		this.wrapper         = wrapper;
 		this.period          = "week";   // chart period
-		this.branch_period   = "today";  // branch sales period
+		this.branch_start    = frappe.datetime.get_today();
+		this.branch_end      = frappe.datetime.get_today();
 		this._chart          = null;
 		this._refresh_timer  = null;
 		this._companies_data = null;
@@ -88,11 +89,12 @@ class SalesMonitorPage {
 			<div class="frappe-card sm-card" id="sm-branch-sales-card">
 				<div class="sm-card-head">
 					<div class="sm-section-title">${__("مبيعات الفروع")}</div>
-					<div>
-						<button class="btn btn-xs btn-primary sm-bp-btn" data-period="today">${__("اليوم")}</button>
-						<button class="btn btn-xs btn-default sm-bp-btn" data-period="week">${__("الأسبوع")}</button>
-						<button class="btn btn-xs btn-default sm-bp-btn" data-period="month">${__("الشهر")}</button>
-						<button class="btn btn-xs btn-default sm-bp-btn" data-period="year">${__("السنة")}</button>
+					<div class="sm-date-range-wrap">
+						<label class="text-muted small" style="margin:0 4px;">${__("من")}</label>
+						<input type="date" id="sm-bs-from" class="form-control input-sm sm-date-input" />
+						<label class="text-muted small" style="margin:0 4px;">${__("إلى")}</label>
+						<input type="date" id="sm-bs-to" class="form-control input-sm sm-date-input" />
+						<button class="btn btn-sm btn-primary" id="sm-bs-apply" style="white-space:nowrap;">${__("عرض")}</button>
 					</div>
 				</div>
 				<div id="sm-branch-sales-wrap" style="min-height:80px;">
@@ -163,18 +165,26 @@ class SalesMonitorPage {
 `;
 		this.page.main.html(html);
 
-		// Wire branch-period buttons
+		// Wire branch date-range filter
 		const self = this;
-		this.page.main[0].querySelectorAll(".sm-bp-btn").forEach(btn => {
-			btn.addEventListener("click", () => {
-				self.branch_period = btn.dataset.period;
-				self._load_branch_sales(btn.dataset.period);
-				self.page.main[0].querySelectorAll(".sm-bp-btn").forEach(b => {
-					b.classList.toggle("btn-primary", b.dataset.period === self.branch_period);
-					b.classList.toggle("btn-default",  b.dataset.period !== self.branch_period);
-				});
+		const todayStr  = frappe.datetime.get_today();
+		const fromInput = this.page.main[0].querySelector("#sm-bs-from");
+		const toInput   = this.page.main[0].querySelector("#sm-bs-to");
+		if (fromInput) fromInput.value = todayStr;
+		if (toInput)   toInput.value   = todayStr;
+
+		const applyBtn = this.page.main[0].querySelector("#sm-bs-apply");
+		if (applyBtn) {
+			applyBtn.addEventListener("click", () => {
+				const from = fromInput ? fromInput.value : self.branch_start;
+				const to   = toInput   ? toInput.value   : self.branch_end;
+				if (!from || !to) { frappe.msgprint(__("يرجى تحديد التاريخ من وإلى")); return; }
+				if (from > to)    { frappe.msgprint(__("تاريخ البداية يجب أن يكون قبل تاريخ النهاية")); return; }
+				self.branch_start = from;
+				self.branch_end   = to;
+				self._load_branch_sales(from, to);
 			});
-		});
+		}
 
 		// Wire chart period buttons
 		this.page.main[0].querySelectorAll(".sm-period-btn").forEach(btn => {
@@ -216,7 +226,7 @@ class SalesMonitorPage {
 	// ── Refresh all data ─────────────────────────────────────────────────────
 	refresh() {
 		this._load_kpi();
-		this._load_branch_sales(this.branch_period);
+		this._load_branch_sales(this.branch_start, this.branch_end);
 		this._load_chart();
 		this._load_branches();
 		this._load_invoices();
@@ -235,14 +245,14 @@ class SalesMonitorPage {
 	}
 
 	// ── Branch Sales Table ──────────────────────────────────────────────────
-	async _load_branch_sales(period) {
+	async _load_branch_sales(start_date, end_date) {
 		const wrap = this.page.main[0].querySelector("#sm-branch-sales-wrap");
 		if (!wrap) return;
 		wrap.innerHTML = `<div style="text-align:center;padding:24px 0">${frappe.utils.icon("spinner", "lg")}</div>`;
 		try {
 			const data = await this._call(
 				"zatca_dashboard.api.invoices.get_branch_sales",
-				{ period }
+				{ start_date, end_date }
 			);
 			if (!data) return;
 			this._render_branch_sales(wrap, data);
@@ -257,8 +267,7 @@ class SalesMonitorPage {
 			return;
 		}
 		const self = this;
-		const periodLabels = { today: __("اليوم"), week: __("الأسبوع"), month: __("الشهر"), year: __("السنة") };
-		const pLabel = periodLabels[data.period] || data.period;
+		const pLabel = data.start === data.end ? data.start : `${data.start} → ${data.end}`;
 		const rows = data.data.map(b => {
 			const total = frappe.format(b.total, { fieldtype: "Currency" });
 			const net   = frappe.format(b.net,   { fieldtype: "Currency" });
@@ -307,7 +316,7 @@ class SalesMonitorPage {
 	</tr></tfoot>
 </table>
 </div>
-<div class="text-muted small" style="padding:6px 12px;">${__("الفترة")}: ${pLabel} &nbsp;|&nbsp; ${data.start} ${data.start !== data.end ? "← " + data.end : ""}</div>`;
+<div class="text-muted small" style="padding:6px 12px;">${__("الفترة")}: ${pLabel}</div>`;
 
 		// Wire posting buttons
 		wrap.querySelectorAll(".sm-post-je-btn").forEach(btn => {

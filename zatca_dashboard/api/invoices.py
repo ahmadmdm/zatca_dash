@@ -376,23 +376,38 @@ def test_connection(api_key=None, base_url=None):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @frappe.whitelist()
-def get_branch_sales(period="today"):
-	"""Returns per-branch aggregated sales for the given period (today/week/month/year)."""
+def get_branch_sales(period=None, start_date=None, end_date=None):
+	"""Returns per-branch aggregated sales for a date range.
+	Accepts start_date/end_date (YYYY-MM-DD) or period (today/week/month/year).
+	"""
 	today = date.today()
-	if period == "today":
-		start = end = today
-	elif period == "week":
-		days_since_sunday = (today.weekday() + 1) % 7
-		start = today - timedelta(days=days_since_sunday)
-		end = today
-	elif period == "month":
-		start = date(today.year, today.month, 1)
-		end = today
-	elif period == "year":
-		start = date(today.year, 1, 1)
-		end = today
+	if start_date and end_date:
+		start = date.fromisoformat(start_date)
+		end   = date.fromisoformat(end_date)
 	else:
-		start = end = today
+		period = period or "today"
+		if period == "today":
+			start = end = today
+		elif period == "week":
+			days_since_sunday = (today.weekday() + 1) % 7
+			start = today - timedelta(days=days_since_sunday)
+			end = today
+		elif period == "month":
+			start = date(today.year, today.month, 1)
+			end = today
+		elif period == "year":
+			start = date(today.year, 1, 1)
+			end = today
+		else:
+			start = end = today
+
+	# Fetch code → full branch name mapping
+	try:
+		status_result = _call_api({"limit": 1}, sync=True)
+		branches_info = status_result.get("syncStatus", {}).get("branches", {})
+		code_to_name = {code: info.get("posDevice", code) for code, info in branches_info.items()}
+	except Exception:
+		code_to_name = {}
 
 	invs, err = _call_api_safe({"startDate": start.isoformat(), "endDate": end.isoformat()})
 	if err:
@@ -400,7 +415,8 @@ def get_branch_sales(period="today"):
 
 	branches = {}
 	for inv in invs:
-		branch = inv.get("branch") or "غير محدد"
+		code   = inv.get("branch") or "غير محدد"
+		branch = code_to_name.get(code, code)   # resolve code → full name
 		if branch not in branches:
 			branches[branch] = {"total": 0.0, "tax": 0.0, "count": 0}
 		branches[branch]["total"] = round(branches[branch]["total"] + (inv.get("totalAmount") or 0), 2)
@@ -419,7 +435,6 @@ def get_branch_sales(period="today"):
 
 	return {
 		"data":        result,
-		"period":      period,
 		"start":       start.isoformat(),
 		"end":         end.isoformat(),
 		"grand_total": round(sum(b["total"] for b in result), 2),
