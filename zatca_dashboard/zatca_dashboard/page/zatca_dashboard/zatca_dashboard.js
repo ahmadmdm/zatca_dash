@@ -15,6 +15,8 @@ frappe.pages["zatca-dashboard"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	frappe.breadcrumbs.add("Zatca Dashboard");
+
 	// Remove Frappe's default padding
 	$(wrapper).find(".page-content").css({ padding: "0", margin: "0" });
 	page.main.css({ padding: "0", margin: "0", "max-width": "100%" });

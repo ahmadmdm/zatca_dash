@@ -10,12 +10,15 @@ frappe.pages["sales-monitor"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	frappe.breadcrumbs.add("Zatca Dashboard");
+
 	const SM = new SalesMonitorPage(page, wrapper);
 	SM.init();
 	wrapper._sales_monitor = SM;   // keep reference
 };
 
 frappe.pages["sales-monitor"].on_page_show = function (wrapper) {
+	frappe.breadcrumbs.add("Zatca Dashboard");
 	if (wrapper._sales_monitor) {
 		wrapper._sales_monitor.refresh();
 	}
