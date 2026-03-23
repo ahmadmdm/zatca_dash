@@ -5,3 +5,6 @@ __pycache__/
 node_modules/
 dist/
 .env
+!zatca_dashboard/public/dist/
+!zatca_dashboard/public/dist/*.js
+!zatca_dashboard/public/dist/*.css

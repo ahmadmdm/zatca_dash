@@ -1,12 +1,14 @@
+from . import __version__ as app_version
+
+
 app_name = "zatca_dashboard"
 app_title = "ZATCA Dashboard"
 app_publisher = "Ahmad"
 app_description = "Professional ZATCA Invoice Dashboard for Frappe 15"
 app_email = "info@ideaorbit.net"
 app_license = "MIT"
-app_version = "1.0.0"
 
-required_apps = ["frappe"]
+required_apps = ["frappe/erpnext"]
 
 fixtures = [
 	{
