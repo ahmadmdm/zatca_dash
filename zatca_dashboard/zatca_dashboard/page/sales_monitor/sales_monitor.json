@@ -7,6 +7,13 @@
  "module": "Zatca Dashboard",
  "standard": "Yes",
  "system_page": 0,
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ],
  "title": "مراقبة المبيعات"
 }

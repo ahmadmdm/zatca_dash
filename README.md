@@ -31,3 +31,23 @@ yarn build
 cd ../..
 bench build --app zatca_dashboard
 ```
+
+## Permissions
+
+The app now enforces role-based access in both metadata and backend APIs.
+
+| Area | Allowed roles |
+| --- | --- |
+| ZATCA dashboard page | System Manager, Accounts Manager, Accounts User |
+| Sales monitor page | System Manager, Accounts Manager |
+| Dashboard/invoice read APIs | System Manager, Accounts Manager, Accounts User |
+| Settings read/write APIs | System Manager, Accounts Manager |
+| Journal entry helper APIs | System Manager, Accounts Manager |
+
+Notes:
+
+- `Accounts User` can view ZATCA dashboard data, invoice metrics, and branch status.
+- `Accounts User` cannot open settings APIs or sales-monitor journal-entry helpers.
+- `Accounts Manager` can view and update ZATCA settings and use the sales-monitor accounting helpers.
+- `System Manager` retains full access.
+- Sensitive write operations no longer use `ignore_permissions=True`, so Frappe document permissions are enforced during settings updates and journal entry creation.

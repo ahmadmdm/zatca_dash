@@ -20,7 +20,17 @@
  "is_hidden": 0,
  "content": "[{\"id\": \"si_h1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>فواتير المبيعات</b></span>\", \"col\": 12}}, {\"id\": \"si_c1\", \"type\": \"card\", \"data\": {\"card_name\": \"فواتير\", \"col\": 4}}]",
  "doctype": "Workspace",
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  }
+ ],
  "quick_lists": [],
  "number_cards": [],
  "links": [

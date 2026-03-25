@@ -39,6 +39,7 @@ class SalesMonitorPage {
 
 	// ── Init ─────────────────────────────────────────────────────────────────
 	init() {
+		this._ensure_currency_styles();
 		this._build_toolbar();
 		this._build_skeleton();
 		this.refresh();
@@ -247,6 +248,60 @@ class SalesMonitorPage {
 		});
 	}
 
+	_ensure_currency_styles() {
+		if (document.getElementById("sm-riyal-symbol-style")) return;
+
+		const style = document.createElement("style");
+		style.id = "sm-riyal-symbol-style";
+		style.textContent = `
+			.sm-riyal-amount {
+				display: inline-flex;
+				align-items: baseline;
+				gap: 0.2em;
+				direction: ltr;
+				unicode-bidi: isolate;
+				white-space: nowrap;
+			}
+
+			.sm-riyal-icon {
+				display: inline-block;
+				width: 0.78em;
+				height: 0.9em;
+				flex: 0 0 0.78em;
+				background-color: currentColor;
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: contain;
+				-webkit-mask: url("/assets/ramotion_theme/images/saudi_riyal_symbol.svg") center / contain no-repeat;
+				mask: url("/assets/ramotion_theme/images/saudi_riyal_symbol.svg") center / contain no-repeat;
+				vertical-align: -0.08em;
+			}
+
+			.sm-riyal-number {
+				direction: ltr;
+				unicode-bidi: isolate;
+			}
+		`;
+
+		document.head.appendChild(style);
+	}
+
+	_format_currency_markup(value) {
+		return this._decorate_currency_markup(frappe.format(value, { fieldtype: "Currency" }));
+	}
+
+	_decorate_currency_markup(formatted) {
+		if (!formatted || typeof formatted !== "string") return formatted;
+
+		const wrapAmount = number => (
+			`<span class="sm-riyal-amount"><span class="sm-riyal-icon" aria-hidden="true"></span><span class="sm-riyal-number">${number}</span></span>`
+		);
+
+		return formatted
+			.replace(/(?:ر\.س|﷼|ê)\s*([0-9][0-9,]*(?:\.[0-9]+)?)/g, (_, number) => wrapAmount(number))
+			.replace(/([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:ر\.س|﷼|ê)/g, (_, number) => wrapAmount(number));
+	}
+
 	// ── Branch Sales Table ──────────────────────────────────────────────────
 	async _load_branch_sales(start_date, end_date) {
 		const wrap = this.page.main[0].querySelector("#sm-branch-sales-wrap");
@@ -272,9 +327,9 @@ class SalesMonitorPage {
 		const self = this;
 		const pLabel = data.start === data.end ? data.start : `${data.start} → ${data.end}`;
 		const rows = data.data.map(b => {
-			const total = frappe.format(b.total, { fieldtype: "Currency" });
-			const net   = frappe.format(b.net,   { fieldtype: "Currency" });
-			const tax   = frappe.format(b.tax,   { fieldtype: "Currency" });
+			const total = this._format_currency_markup(b.total);
+			const net   = this._format_currency_markup(b.net);
+			const tax   = this._format_currency_markup(b.tax);
 			const bData = encodeURIComponent(JSON.stringify(b));
 			return `
 <tr>
@@ -295,7 +350,7 @@ class SalesMonitorPage {
 </tr>`;
 		}).join("");
 
-		const grand_total = frappe.format(data.grand_total, { fieldtype: "Currency" });
+		const grand_total = this._format_currency_markup(data.grand_total);
 
 		wrap.innerHTML = `
 <div style="overflow-x:auto;">
@@ -359,9 +414,9 @@ class SalesMonitorPage {
 			return c || { income_accounts: [], debit_accounts: [] };
 		};
 
-		const totalFmt   = frappe.format(branch_data.total, { fieldtype: "Currency" });
-		const netFmt     = frappe.format(branch_data.net,   { fieldtype: "Currency" });
-		const taxFmt     = frappe.format(branch_data.tax,   { fieldtype: "Currency" });
+		const totalFmt   = this._format_currency_markup(branch_data.total);
+		const netFmt     = this._format_currency_markup(branch_data.net);
+		const taxFmt     = this._format_currency_markup(branch_data.tax);
 
 		const d = new frappe.ui.Dialog({
 			title: `${__("Post Sales")} — ${branch_data.branch}`,
@@ -574,7 +629,7 @@ class SalesMonitorPage {
 			const pctCls = d.total_change >= 0 ? "text-success" : "text-danger";
 			const arrow  = d.total_change >= 0 ? "▲" : "▼";
 			const pctAbs = Math.abs(d.total_change).toFixed(1);
-			const total  = frappe.format(d.total, { fieldtype: "Currency" });
+			const total  = this._format_currency_markup(d.total);
 			const count  = frappe.format(d.count, { fieldtype: "Int" });
 
 			card.innerHTML = `
@@ -787,8 +842,8 @@ class SalesMonitorPage {
 
 		const rows = invoices.map(inv => {
 			const st    = STATUS_MAP[inv.status] || { cls: "grey", lbl: inv.status || "—" };
-			const total = frappe.format(inv.totalAmount || 0, { fieldtype: "Currency" });
-			const tax   = frappe.format(inv.taxAmount   || 0, { fieldtype: "Currency" });
+			const total = this._format_currency_markup(inv.totalAmount || 0);
+			const tax   = this._format_currency_markup(inv.taxAmount   || 0);
 			const date  = inv.issueDate ? inv.issueDate.slice(0, 10) : "—";
 			return `
 <tr>

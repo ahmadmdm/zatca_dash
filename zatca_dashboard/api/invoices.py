@@ -5,6 +5,24 @@ import calendar
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
+READ_ONLY_ROLES = {"System Manager", "Accounts Manager", "Accounts User"}
+MANAGER_ROLES = {"System Manager", "Accounts Manager"}
+
+
+def _require_roles(allowed_roles):
+	user_roles = set(frappe.get_roles(frappe.session.user))
+	if user_roles.isdisjoint(allowed_roles):
+		frappe.throw("You do not have permission to access ZATCA Dashboard.", frappe.PermissionError)
+
+
+def _require_read_access():
+	_require_roles(READ_ONLY_ROLES)
+
+
+def _require_manager_access():
+	_require_roles(MANAGER_ROLES)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Internal helpers
 # ─────────────────────────────────────────────────────────────────────────────
@@ -150,6 +168,7 @@ def _last_month(today):
 def get_kpi_data():
 	"""Returns aggregated KPI data for Today / Week / Month / Year with period comparisons.
 	Credentials are fetched once in the main thread; all 8 API calls run in parallel."""
+	_require_read_access()
 	today = date.today()
 	# Saudi week starts on Sunday (Python weekday: Sunday=6)
 	days_since_sunday = (today.weekday() + 1) % 7   # 0 on Sun, 1 on Mon, … 6 on Sat
@@ -197,6 +216,7 @@ def get_kpi_data():
 @frappe.whitelist()
 def get_chart_data(period="week"):
 	"""Returns daily/weekly/monthly totals for chart rendering with comparison."""
+	_require_read_access()
 	today = date.today()
 
 	if period == "year":
@@ -291,6 +311,7 @@ def _yearly_chart(today):
 
 @frappe.whitelist()
 def get_invoices(branch=None, start_date=None, end_date=None, status=None, limit=100):
+	_require_read_access()
 	params = {"limit": int(limit)}
 	if branch and branch != "all":   params["branch"]    = branch
 	if start_date:                   params["startDate"] = start_date
@@ -303,6 +324,7 @@ def get_invoices(branch=None, start_date=None, end_date=None, status=None, limit
 
 @frappe.whitelist()
 def get_branch_status():
+	_require_read_access()
 	result = _call_api({"limit": 1}, sync=True)
 	branches = result.get("syncStatus", {}).get("branches", {})
 	out = []
@@ -319,7 +341,9 @@ def get_branch_status():
 
 @frappe.whitelist()
 def get_settings():
+	_require_manager_access()
 	s = _get_settings()
+	s.check_permission("read")
 	return {
 		"base_url":            s.base_url or "https://za.ideaorbit.net",
 		"default_limit":       s.default_limit or 100,
@@ -330,20 +354,24 @@ def get_settings():
 
 @frappe.whitelist()
 def save_settings(base_url, api_key=None, default_limit=100, enable_sync_status=1):
+	_require_manager_access()
 	s = _get_settings()
+	s.check_permission("write")
 	s.base_url           = base_url
 	s.default_limit      = int(default_limit)
 	s.enable_sync_status = int(enable_sync_status)
 	if api_key:
 		s.api_key = api_key
-	s.save(ignore_permissions=True)
+	s.save()
 	return {"success": True}
 
 
 @frappe.whitelist()
 def test_connection(api_key=None, base_url=None):
+	_require_manager_access()
 	try:
 		s = _get_settings()
+		s.check_permission("read")
 		key = api_key
 		if not key and s.api_key:
 			try:
@@ -380,6 +408,7 @@ def get_branch_sales(period=None, start_date=None, end_date=None):
 	"""Returns per-branch aggregated sales for a date range.
 	Accepts start_date/end_date (YYYY-MM-DD) or period (today/week/month/year).
 	"""
+	_require_read_access()
 	today = date.today()
 	if start_date and end_date:
 		start = date.fromisoformat(start_date)
@@ -445,6 +474,7 @@ def get_branch_sales(period=None, start_date=None, end_date=None):
 @frappe.whitelist()
 def get_companies_for_je():
 	"""Returns companies with their income + cash/bank accounts for JE dialog."""
+	_require_manager_access()
 	companies = frappe.db.sql("SELECT name, abbr FROM `tabCompany` ORDER BY name", as_dict=True)
 	result = []
 	for c in companies:
@@ -470,6 +500,7 @@ def post_branch_journal_entry(branch, posting_date, company, rows, narration=Non
 	"""Creates a draft Journal Entry for a branch's daily sales.
 	rows: JSON list of {account, debit, credit, remark}
 	"""
+	_require_manager_access()
 	import json
 	if isinstance(rows, str):
 		rows = json.loads(rows)
@@ -492,13 +523,14 @@ def post_branch_journal_entry(branch, posting_date, company, rows, narration=Non
 			"user_remark":                     r.get("remark", ""),
 		} for r in rows],
 	})
-	je.insert(ignore_permissions=True)
+	je.insert()
 	return {"name": je.name, "status": "Draft"}
 
 
 @frappe.whitelist()
 def get_today_branch_sales():
 	"""Returns today's total sales (SAR) from ZATCA API — used by Number Card."""
+	_require_read_access()
 	today = date.today().isoformat()
 	invs, err = _call_api_safe({"startDate": today, "endDate": today})
 	if err:
@@ -509,6 +541,7 @@ def get_today_branch_sales():
 @frappe.whitelist()
 def get_today_branch_invoice_count():
 	"""Returns today's invoice count from ZATCA API — used by Number Card."""
+	_require_read_access()
 	today = date.today().isoformat()
 	invs, err = _call_api_safe({"startDate": today, "endDate": today})
 	if err:

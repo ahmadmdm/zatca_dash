@@ -7,6 +7,16 @@
 	"module": "Zatca Dashboard",
 	"standard": "Yes",
 	"system_page": 0,
-	"roles": [],
+	"roles": [
+		{
+			"role": "System Manager"
+		},
+		{
+			"role": "Accounts Manager"
+		},
+		{
+			"role": "Accounts User"
+		}
+	],
 	"title": "ZATCA Dashboard"
 }
