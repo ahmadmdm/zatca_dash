@@ -4,6 +4,12 @@ Professional ZATCA Invoice Dashboard for Frappe 15.
 
 Displays today / week / month / year sales KPIs pulled from the ZATCA export API with period-over-period comparisons. Built with Vue 3 + Frappe UI.
 
+## Release Notes
+
+### v1.0.2
+
+- Fix editable installation in Bench environments that use `uv pip` by removing the unnecessary direct `frappe` dependency from package metadata.
+
 ## Requirements
 
 - Frappe v15
